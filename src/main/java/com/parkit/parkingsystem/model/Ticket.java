@@ -38,8 +38,8 @@ public class Ticket {
         return price;
     }
 
-    public double getPriceReccurentUser() {
-        return price - price * 5 / 100;
+    public double getPriceRecurrentUser() {
+        return price - (price * 5 / 100);
     }
 
     public void setPrice(double price) {

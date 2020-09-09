@@ -9,8 +9,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,14 +41,12 @@ public class FareCalculatorServiceTest {
         inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-        DecimalFormatSymbols decimalSeparator = new DecimalFormatSymbols(); //rounding and format result
-        decimalSeparator.setDecimalSeparator('.');
-        DecimalFormat df = new DecimalFormat("#.#", decimalSeparator);
+
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals(Fare.CAR_RATE_PER_HOUR, Double.parseDouble(df.format(ticket.getPrice())));
+        assertEquals(Fare.CAR_RATE_PER_HOUR, ticket.getPrice(), 0.01);
     }
 
     @Test
@@ -59,15 +55,12 @@ public class FareCalculatorServiceTest {
         inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
-        DecimalFormatSymbols decimalSeparator = new DecimalFormatSymbols(); //rounding and format result
-        decimalSeparator.setDecimalSeparator('.');
-        DecimalFormat df = new DecimalFormat("#.#", decimalSeparator);
 
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals(Fare.BIKE_RATE_PER_HOUR, Double.parseDouble(df.format(ticket.getPrice())));
+        assertEquals(Fare.BIKE_RATE_PER_HOUR, ticket.getPrice(), 0.01);
     }
 
     @Test
@@ -102,14 +95,12 @@ public class FareCalculatorServiceTest {
         inTime.setTime(System.currentTimeMillis() - (45 * 60 * 1000));//45 minutes parking time should give 3/4th parking fare
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
-        DecimalFormatSymbols decimalSeparator = new DecimalFormatSymbols();
-        decimalSeparator.setDecimalSeparator('.');
-        DecimalFormat df = new DecimalFormat("#.##", decimalSeparator);
+
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals((0.75 * Fare.BIKE_RATE_PER_HOUR), Double.parseDouble(df.format(ticket.getPrice())));
+        assertEquals((0.75 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice(), 0.001);
     }
 
     @Test
@@ -118,16 +109,12 @@ public class FareCalculatorServiceTest {
         inTime.setTime(System.currentTimeMillis() - (45 * 60 * 1000));//45 minutes parking time should give 3/4th parking fare
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-        DecimalFormatSymbols decimalSeparator = new DecimalFormatSymbols(); //rounding and format result
-        decimalSeparator.setDecimalSeparator('.');
-        DecimalFormat df = new DecimalFormat("#.###", decimalSeparator);
-
 
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals((0.75 * Fare.CAR_RATE_PER_HOUR), Double.parseDouble(df.format(ticket.getPrice())));
+        assertEquals((0.75 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice(), 0.0001);
     }
 
     @Test
@@ -162,7 +149,7 @@ public class FareCalculatorServiceTest {
     }
 
     @Test
-    public void calculateFareForReccurentUserWithFivePercentReduction() {
+    public void calculateFareForRecurrentUserWithFivePercentReduction() {
 
         inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));
 
@@ -172,7 +159,7 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals((Fare.CAR_RATE_PER_HOUR - Fare.CAR_RATE_PER_HOUR * 5 / 100), ticket.getPriceReccurentUser());
+        assertEquals((Fare.CAR_RATE_PER_HOUR - Fare.CAR_RATE_PER_HOUR * 5 / 100), ticket.getPriceRecurrentUser(), 0.0001);
 
     }
 

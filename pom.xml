@@ -14,6 +14,10 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <log4jVersion>2.13.3</log4jVersion>
         <junitVersion>5.3.2</junitVersion>
+        <mysqlVersion>8.0.17</mysqlVersion>
+        <mockitoVersion>2.23.4</mockitoVersion>
+        <jacocoVersion>0.8.5</jacocoVersion>
+        <spotbugsVersion>4.0.4</spotbugsVersion>
     </properties>
 
     <dependencies>
@@ -30,7 +34,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.17</version>
+            <version>${mysqlVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -47,24 +51,35 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>2.23.4</version>
+            <version>${mockitoVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.5</version>
+            <version>${jacocoVersion}</version>
             <type>maven-plugin</type>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.0.0</version>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.9.1</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.23.4</version>
+            <version>${mockitoVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>${spotbugsVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.0.0-M5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -89,11 +104,16 @@
                                 </manifest>
                             </archive>
                             <descriptorRefs>
-                                <descriptorRef>executable-jar-with-dependencies</descriptorRef>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.9.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -133,7 +153,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
+                <version>${jacocoVersion}</version>
                 <executions>
                     <execution>
                         <goals>
