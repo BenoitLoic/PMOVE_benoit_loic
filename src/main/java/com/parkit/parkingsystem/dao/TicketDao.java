@@ -13,13 +13,24 @@ import java.sql.Timestamp;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Contain DAO method for ticket table saving ticket, retrieve ticket, updating ticket and check
+ * recurrent user.
+ */
 public class TicketDao {
 
   private static final Logger logger = LogManager.getLogger("TicketDAO");
 
   public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
-  public boolean saveTicket(Ticket ticket) {
+  /**
+   * Method to save ticket in DB.
+   *
+   * @param ticket
+   * @return boolean
+   * @throws SQLException
+   */
+  public boolean saveTicket(Ticket ticket) throws SQLException {
     Connection con = null;
     PreparedStatement ps = null;
     try {
@@ -43,7 +54,14 @@ public class TicketDao {
     return false;
   }
 
-  public Ticket getTicket(String vehicleRegNumber) {
+  /**
+   * Method to retrieve ticket from DB.
+   *
+   * @param vehicleRegNumber
+   * @return ticket
+   * @throws SQLException
+   */
+  public Ticket getTicket(String vehicleRegNumber) throws SQLException, ClassNotFoundException {
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
@@ -65,8 +83,9 @@ public class TicketDao {
         ticket.setInTime(rs.getTimestamp(4));
         ticket.setOutTime(rs.getTimestamp(5));
       }
-    } catch (Exception ex) {
-      logger.error("Error fetching next available slot", ex);
+    } catch ( SQLException e) {
+      logger.error("Error fetching next available slot");
+      throw e;
     } finally {
       dataBaseConfig.closeConnection(con);
       dataBaseConfig.closePreparedStatement(ps);
@@ -75,7 +94,15 @@ public class TicketDao {
     return ticket;
   }
 
-  public boolean updateTicket(Ticket ticket) {
+  /**
+   * Method to update ticket outTime and price.
+   *
+   * @param ticket
+   * @return boolean
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
+  public boolean updateTicket(Ticket ticket) throws SQLException, ClassNotFoundException {
     Connection con = null;
     PreparedStatement ps = null;
     try {
@@ -91,8 +118,8 @@ public class TicketDao {
       ps.setString(3, ticket.getVehicleRegNumber());
       ps.execute();
       return true;
-    } catch (Exception ex) {
-      logger.error("Error saving ticket info", ex);
+    } catch (SQLException ex) {
+      logger.error("Error saving ticket info");
     } finally {
       dataBaseConfig.closeConnection(con);
       dataBaseConfig.closePreparedStatement(ps);
@@ -100,7 +127,15 @@ public class TicketDao {
     return false;
   }
 
-  public boolean checkRecurrentUser(Ticket ticket) {
+  /**
+   * Method to check if the vehicleRegNumber already exist in DB.
+   *
+   * @param ticket
+   * @return boolean
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
+  public boolean checkRecurrentUser(Ticket ticket) throws SQLException, ClassNotFoundException {
 
     boolean result = false;
     Connection con = null;
@@ -120,9 +155,8 @@ public class TicketDao {
       }
 
     } catch (SQLException ex) {
-      logger.error("Error checking recurrent user", ex);
-    } catch (ClassNotFoundException ex) {
-      logger.error("Error saving ticket info", ex);
+      logger.error("Error checking recurrent user");
+      throw ex;
     } finally {
       dataBaseConfig.closeResultSet(rs);
       dataBaseConfig.closePreparedStatement(ps);

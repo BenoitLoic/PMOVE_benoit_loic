@@ -59,8 +59,9 @@ public class ParkingDataBaseIT {
   }
 
   @Test
-  public void testParkingACar() throws SQLException {
-
+  public void testParkingACar() throws SQLException, ClassNotFoundException {
+    String available = "";
+    String regNumber = "";
     // GIVEN
     ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
     // WHEN
@@ -73,18 +74,18 @@ public class ParkingDataBaseIT {
     PreparedStatement prepStatement = con.prepareStatement(preparedString);
     ResultSet rs = prepStatement.executeQuery();
     while (rs.next()) {
-      String available = rs.getString("AVAILABLE");
-      String regNumber = rs.getString("VEHICLE_REG_NUMBER");
-      assertEquals("0", available);
-      assertEquals("CAR1", regNumber);
+      available = rs.getString("AVAILABLE");
+      regNumber = rs.getString("VEHICLE_REG_NUMBER");
     }
+    assertEquals("0", available);
+    assertEquals("CAR1", regNumber);
     dataBaseTestConfig.closePreparedStatement(prepStatement);
     dataBaseTestConfig.closeResultSet(rs);
     dataBaseTestConfig.closeConnection(con);
   }
 
   @Test
-  public void testParkingLotExit() throws SQLException{
+  public void testParkingLotExit() throws SQLException, ClassNotFoundException {
     String availability = "";
     Timestamp outTime = new Timestamp(System.currentTimeMillis()-1000);
     double firstTimePrice = 0;

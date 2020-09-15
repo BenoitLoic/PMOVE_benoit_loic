@@ -7,15 +7,24 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/** Contain DAO method for Parking Table. */
 public class ParkingSpotDao {
   private static final Logger logger = LogManager.getLogger("ParkingSpotDAO");
 
   public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
-  public int getNextAvailableSlot(ParkingType parkingType) {
+  /**
+   * Method to Get the next available parking slot in DB for this parkingType.
+   *
+   * @param parkingType
+   * @return integer result (number of the 1st available slot in DB, -1 == error)
+   * @throws SQLException
+   */
+  public int getNextAvailableSlot(ParkingType parkingType) throws SQLException {
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
@@ -39,8 +48,16 @@ public class ParkingSpotDao {
     return result;
   }
 
-  public boolean updateParking(ParkingSpot parkingSpot) {
-    // update the availability for that parking slot
+  /**
+   * Method to update the availability for that parking slot.
+   *
+   * @param parkingSpot
+   * @return boolean
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
+  public boolean updateParking(ParkingSpot parkingSpot)
+      throws SQLException, ClassNotFoundException {
     Connection con = null;
     PreparedStatement ps = null;
     try {
@@ -50,9 +67,9 @@ public class ParkingSpotDao {
       ps.setInt(2, parkingSpot.getId());
       int updateRowCount = ps.executeUpdate();
       return (updateRowCount == 1);
-    } catch (Exception ex) {
-      logger.error("Error updating parking info", ex);
-      return false;
+    } catch (SQLException | ClassNotFoundException ex) {
+      logger.error("Error updating parking info");
+      throw ex;
     } finally {
       dataBaseConfig.closePreparedStatement(ps);
       dataBaseConfig.closeConnection(con);

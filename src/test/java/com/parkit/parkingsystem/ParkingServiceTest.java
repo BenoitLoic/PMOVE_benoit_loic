@@ -12,6 +12,7 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
+import java.sql.SQLException;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ public class ParkingServiceTest {
   @Mock private static TicketDao ticketDAO;
 
   @BeforeEach
-  private void setUpPerTest() {
+  private void setUpPerTest() throws SQLException, ClassNotFoundException {
 
     when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
@@ -46,7 +47,7 @@ public class ParkingServiceTest {
   }
 
   @Test
-  public void processExitingVehicleTest() {
+  public void processExitingVehicleTest() throws SQLException, ClassNotFoundException {
     when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
     parkingService.processExitingVehicle();
     verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));

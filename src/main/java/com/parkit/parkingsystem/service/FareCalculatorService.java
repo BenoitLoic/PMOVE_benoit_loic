@@ -1,12 +1,20 @@
 package com.parkit.parkingsystem.service;
 
 import com.parkit.parkingsystem.constants.Fare;
-import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.model.Ticket;
 
+/** Contain a method to calculate the price of parking. */
 public class FareCalculatorService {
 
-  public void calculateFare(Ticket ticket) {
+  /**
+   * Method to calculate the price of parking.
+   *
+   * @param ticket
+   * @throws NullPointerException if out time is null
+   * @throws IllegalArgumentException if out time is before in time
+   */
+  public void calculateFare(Ticket ticket) throws IllegalArgumentException, NullPointerException {
+    final float millisecondsToHoursConversion = 1 / 3600000.f;
     if ((ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime()))) {
       if (ticket.getOutTime() != null) {
         throw new IllegalArgumentException(
@@ -19,9 +27,9 @@ public class FareCalculatorService {
     long inHour = ticket.getInTime().getTime();
     long outHour = ticket.getOutTime().getTime();
 
-    float duration = (outHour - inHour) / 3600000.f;
+    float duration = (outHour - inHour) * millisecondsToHoursConversion;
 
-    if (duration <= 0.5) {
+    if (duration <= Fare.FREE_TIME_IN_HOUR) {
       duration = 0;
     }
 

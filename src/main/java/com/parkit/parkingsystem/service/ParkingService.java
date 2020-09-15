@@ -1,6 +1,5 @@
 package com.parkit.parkingsystem.service;
 
-import com.parkit.parkingsystem.config.DataBaseConfig;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDao;
 import com.parkit.parkingsystem.dao.TicketDao;
@@ -8,10 +7,12 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.SQLException;
 import java.util.Date;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/** Contains method to process incoming/exiting vehicle. */
 @SuppressFBWarnings("UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD")
 public class ParkingService {
 
@@ -22,7 +23,6 @@ public class ParkingService {
   private final InputReaderUtil inputReaderUtil;
   private final ParkingSpotDao parkingSpotDao;
   private final TicketDao ticketDao;
-  public DataBaseConfig dataBaseConfig;
 
   public ParkingService(
       InputReaderUtil inputReaderUtil, ParkingSpotDao parkingSpotDao, TicketDao ticketDao) {
@@ -31,7 +31,13 @@ public class ParkingService {
     this.ticketDao = ticketDao;
   }
 
-  public void processIncomingVehicle() {
+  /**
+   * Method that add a vehicle to the parking lot .
+   *
+   * @throws SQLException from DAO
+   * @throws ClassNotFoundException from DAO
+   */
+  public void processIncomingVehicle() throws SQLException, ClassNotFoundException {
     try {
       ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
       if (parkingSpot != null && parkingSpot.getId() > 0) {
@@ -49,18 +55,25 @@ public class ParkingService {
         ticket.setOutTime(null);
         ticketDao.saveTicket(ticket);
         if (ticketDao.checkRecurrentUser(ticket)) {
-          System.out.println("Welcome back!\nAs a recurring user of our parking lot, you'll benefit from a 5% discount.");
+          System.out.println(
+              "Welcome back! As a recurring user of our parking lot, you'll benefit from a 5% discount.");
         }
         System.out.println("Generated Ticket and saved in DB");
         System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
         System.out.println(
             "Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
       }
-    } catch (Exception e) {
-      logger.error("Unable to process incoming vehicle", e);
+    } catch (SQLException | ClassNotFoundException e) {
+      logger.error("Unable to process incoming vehicle");
+      throw e;
     }
   }
 
+  /**
+   * Method that return the vehicleRegNumber from user.
+   *
+   * @return String Vehicle Registration Number
+   */
   private String getVehicleRegNumber() {
     System.out.println("Please type the vehicle registration number and press enter key");
     return inputReaderUtil.readVehicleRegistrationNumber();
@@ -85,6 +98,11 @@ public class ParkingService {
     return parkingSpot;
   }
 
+  /**
+   * Method that get the vehicle type from user.
+   *
+   * @return Vehicle type (CAR/BIKE)
+   */
   private ParkingType getVehicleType() {
     System.out.println("Please select vehicle type from menu");
     System.out.println("1 CAR");
@@ -107,7 +125,16 @@ public class ParkingService {
     }
   }
 
-  public void processExitingVehicle() {
+  /**
+   * Method that proceed to remove a vehicle from parking lot. It will add price and out time to
+   * ticket and update DB.
+   *
+   * @throws SQLException from DAO
+   * @throws NullPointerException from fareCalculatorService
+   * @throws ClassNotFoundException from DAO
+   */
+  public void processExitingVehicle()
+      throws SQLException, NullPointerException, ClassNotFoundException {
     try {
       String vehicleRegNumber = getVehicleRegNumber();
       Ticket ticket = ticketDao.getTicket(vehicleRegNumber);
@@ -132,8 +159,9 @@ public class ParkingService {
       } else {
         System.out.println("Unable to update ticket information. Error occurred");
       }
-    } catch (Exception e) {
-      logger.error("Unable to process exiting vehicle", e);
+    } catch (NullPointerException e) {
+      logger.error("Unable to process exiting vehicle");
+      throw e;
     }
   }
 }
