@@ -36,7 +36,7 @@ public class ParkingSpotDao {
           result = rs.getInt(1);
         }
       }
-    } catch (SQLException|ClassNotFoundException ex) {
+    } catch (SQLException | ClassNotFoundException ex) {
       logger.error("Error fetching next available slot");
       throw ex;
     }
