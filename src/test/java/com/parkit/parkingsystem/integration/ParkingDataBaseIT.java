@@ -33,7 +33,6 @@ public class ParkingDataBaseIT {
   private static TicketDao ticketDAO;
   private static DataBasePrepareService dataBasePrepareService;
   private static ParkingService parkingService;
-  private static Connection con;
 
   @Mock private static InputReaderUtil inputReaderUtil;
 
@@ -50,11 +49,11 @@ public class ParkingDataBaseIT {
   private static void tearDown() {}
 
   @BeforeEach
-  private void setUpPerTest() throws Exception {
+  private void setUpPerTest() {
     when(inputReaderUtil.readSelection()).thenReturn(1);
     when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1");
     dataBasePrepareService.clearDataBaseEntries();
-    con = dataBaseTestConfig.getConnection();
+
     parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
   }
 
@@ -63,6 +62,7 @@ public class ParkingDataBaseIT {
     String available = "";
     String regNumber = "";
     // GIVEN
+
     ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
     // WHEN
     parkingService.processIncomingVehicle();
@@ -71,23 +71,24 @@ public class ParkingDataBaseIT {
         "SELECT t.*, p.AVAILABLE, p.TYPE "
             + "FROM ticket t, parking p "
             + "WHERE t.PARKING_NUMBER = p.PARKING_NUMBER;";
-    PreparedStatement prepStatement = con.prepareStatement(preparedString);
-    ResultSet rs = prepStatement.executeQuery();
-    while (rs.next()) {
-      available = rs.getString("AVAILABLE");
-      regNumber = rs.getString("VEHICLE_REG_NUMBER");
+
+    try (Connection con = dataBaseTestConfig.getConnection();
+        PreparedStatement prepStatement = con.prepareStatement(preparedString);
+        ResultSet rs = prepStatement.executeQuery()) {
+
+      while (rs.next()) {
+        available = rs.getString("AVAILABLE");
+        regNumber = rs.getString("VEHICLE_REG_NUMBER");
+      }
+      assertEquals("0", available);
+      assertEquals("CAR1", regNumber);
     }
-    assertEquals("0", available);
-    assertEquals("CAR1", regNumber);
-    dataBaseTestConfig.closePreparedStatement(prepStatement);
-    dataBaseTestConfig.closeResultSet(rs);
-    dataBaseTestConfig.closeConnection(con);
   }
 
   @Test
   public void testParkingLotExit() throws SQLException, ClassNotFoundException {
     String availability = "";
-    Timestamp outTime = new Timestamp(System.currentTimeMillis()-1000);
+    Timestamp outTime = new Timestamp(System.currentTimeMillis() - 1000);
     double firstTimePrice = 0;
     double recurrentPrice = 0;
     // GIVEN
@@ -95,49 +96,51 @@ public class ParkingDataBaseIT {
     // changing IN_TIME in DB
     String subOneHourString =
         "UPDATE ticket " + "SET IN_TIME = SUBTIME (IN_TIME, '01:00:00') " + "WHERE ID = ?;";
-    PreparedStatement ps = con.prepareStatement(subOneHourString);
-    ps.setInt(1, 1);
-    ps.execute();
-    // WHEN
-    parkingService.processExitingVehicle();
-    parkingService.processIncomingVehicle();
-    ps.setInt(1, 2);
-    ps.execute();
-    dataBaseTestConfig.closePreparedStatement(ps);
-    parkingService.processExitingVehicle();
-    // THEN
-    String preparedString =
-        "SELECT t.*, p.AVAILABLE, p.TYPE "
-            + "FROM ticket t, parking p "
-            + "WHERE t.PARKING_NUMBER = p.PARKING_NUMBER "
-            + "AND ID = ?;";
-    ps = con.prepareStatement(preparedString);
-    ps.setInt(1, 1);
-    ResultSet rs = ps.executeQuery();
-    if (rs.next()) {
-      outTime = rs.getTimestamp("OUT_TIME");
-      availability = rs.getString("AVAILABLE");
-      firstTimePrice = rs.getDouble("PRICE");
-    }
-    dataBaseTestConfig.closeResultSet(rs);
-    ps.setInt(1, 2);
-    rs = ps.executeQuery();
-    if (rs.next()) {
-      recurrentPrice = rs.getDouble("PRICE");
-    }
-    //            check if parkingLot is freed
-    assertEquals("1", availability);
-    //            check if out_time is populated correctly in DB
-    assertEquals(
-        DateUtils.round(new Timestamp(System.currentTimeMillis()), Calendar.MINUTE),
-        DateUtils.round(outTime, Calendar.MINUTE));
-    //          check if fare generated is populated correctly in DB
-    assertEquals(Fare.CAR_RATE_PER_HOUR, firstTimePrice, 0.001);
-    //          check if discount is applied to recurrent user
-    assertEquals(Fare.CAR_RATE_PER_HOUR - Fare.CAR_RATE_PER_HOUR * 5 / 100, recurrentPrice, 0.001);
+    try (Connection con = dataBaseTestConfig.getConnection()) {
+      try (PreparedStatement ps = con.prepareStatement(subOneHourString)) {
+        ps.setInt(1, 1);
+        ps.execute();
+        // WHEN
+        parkingService.processExitingVehicle();
+        parkingService.processIncomingVehicle();
+        ps.setInt(1, 2);
+        ps.execute();
+      }
 
-    dataBaseTestConfig.closeResultSet(rs);
-    dataBaseTestConfig.closePreparedStatement(ps);
-    dataBaseTestConfig.closeConnection(con);
+      parkingService.processExitingVehicle();
+      // THEN
+      String preparedString =
+          "SELECT t.*, p.AVAILABLE, p.TYPE "
+              + "FROM ticket t, parking p "
+              + "WHERE t.PARKING_NUMBER = p.PARKING_NUMBER "
+              + "AND ID = ?;";
+      try (PreparedStatement ps = con.prepareStatement(preparedString)) {
+        ps.setInt(1, 1);
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            outTime = rs.getTimestamp("OUT_TIME");
+            availability = rs.getString("AVAILABLE");
+            firstTimePrice = rs.getDouble("PRICE");
+          }
+        }
+        ps.setInt(1, 2);
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            recurrentPrice = rs.getDouble("PRICE");
+          }
+        }
+      }
+      //            check if parkingLot is freed
+      assertEquals("1", availability);
+      //            check if out_time is populated correctly in DB
+      assertEquals(
+          DateUtils.round(new Timestamp(System.currentTimeMillis()), Calendar.MINUTE),
+          DateUtils.round(outTime, Calendar.MINUTE));
+      //          check if fare generated is populated correctly in DB
+      assertEquals(Fare.CAR_RATE_PER_HOUR, firstTimePrice, 0.001);
+      //          check if discount is applied to recurrent user
+      assertEquals(
+          Fare.CAR_RATE_PER_HOUR - Fare.CAR_RATE_PER_HOUR * 5 / 100, recurrentPrice, 0.001);
+    }
   }
 }
