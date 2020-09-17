@@ -15,8 +15,8 @@ public class InteractiveShell {
   /**
    * Method that loads the menu and use a switch to enter / exit a vehicle or quit the application.
    *
-   * @throws SQLException
-   * @throws ClassNotFoundException
+   * @throws SQLException from dataBaseConfig and DAO
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public static void loadInterface() throws SQLException, ClassNotFoundException {
     logger.info("App initialized!!!");
@@ -32,22 +32,19 @@ public class InteractiveShell {
       loadMenu();
       int option = inputReaderUtil.readSelection();
       switch (option) {
-        case 1:
-          {
-            parkingService.processIncomingVehicle();
-            break;
-          }
-        case 2:
-          {
-            parkingService.processExitingVehicle();
-            break;
-          }
-        case 3:
-          {
-            System.out.println("Exiting from the system!");
-            continueApp = false;
-            break;
-          }
+        case 1: {
+          parkingService.processIncomingVehicle();
+          break;
+        }
+        case 2: {
+          parkingService.processExitingVehicle();
+          break;
+        }
+        case 3: {
+          System.out.println("Exiting from the system!");
+          continueApp = false;
+          break;
+        }
         default:
           System.out.println(
               "Unsupported option. Please enter a number corresponding to the provided menu");

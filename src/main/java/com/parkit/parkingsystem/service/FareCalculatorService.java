@@ -3,13 +3,13 @@ package com.parkit.parkingsystem.service;
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
-/** Contain a method to calculate the price of parking. */
+/** Contain a method to calculate the price of parking for its duration. */
 public class FareCalculatorService {
 
   /**
    * Method to calculate the price of parking.
    *
-   * @param ticket
+   * @param ticket the ticket to calculate the fare
    * @throws NullPointerException if out time is null
    * @throws IllegalArgumentException if out time is before in time
    */

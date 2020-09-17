@@ -24,6 +24,13 @@ public class ParkingService {
   private final ParkingSpotDao parkingSpotDao;
   private final TicketDao ticketDao;
 
+  /**
+   * Constructor for ParkingService class.
+   *
+   * @param inputReaderUtil user input
+   * @param parkingSpotDao DAO for parking table in db
+   * @param ticketDao DAO for ticket table in db
+   */
   public ParkingService(
       InputReaderUtil inputReaderUtil, ParkingSpotDao parkingSpotDao, TicketDao ticketDao) {
     this.inputReaderUtil = inputReaderUtil;
@@ -34,8 +41,8 @@ public class ParkingService {
   /**
    * Method that add a vehicle to the parking lot .
    *
-   * @throws SQLException from DAO
-   * @throws ClassNotFoundException from DAO
+   * @throws SQLException from dataBaseConfig and DAO
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public void processIncomingVehicle() throws SQLException, ClassNotFoundException {
     try {
@@ -109,19 +116,16 @@ public class ParkingService {
     System.out.println("2 BIKE");
     int input = inputReaderUtil.readSelection();
     switch (input) {
-      case 1:
-        {
-          return ParkingType.CAR;
-        }
-      case 2:
-        {
-          return ParkingType.BIKE;
-        }
-      default:
-        {
-          System.out.println("Incorrect input provided");
-          throw new IllegalArgumentException("Entered input is invalid");
-        }
+      case 1: {
+        return ParkingType.CAR;
+      }
+      case 2: {
+        return ParkingType.BIKE;
+      }
+      default: {
+        System.out.println("Incorrect input provided");
+        throw new IllegalArgumentException("Entered input is invalid");
+      }
     }
   }
 
@@ -129,9 +133,9 @@ public class ParkingService {
    * Method that proceed to remove a vehicle from parking lot. It will add price and out time to
    * ticket and update DB.
    *
-   * @throws SQLException from DAO
+   * @throws SQLException from dataBaseConfig and DAO
    * @throws NullPointerException from fareCalculatorService
-   * @throws ClassNotFoundException from DAO
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public void processExitingVehicle()
       throws SQLException, NullPointerException, ClassNotFoundException {

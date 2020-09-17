@@ -26,11 +26,12 @@ public class TicketDao {
   /**
    * Method to save ticket in DB.
    *
-   * @param ticket
-   * @return boolean
-   * @throws SQLException
+   * @param ticket the ticket model to save
+   * @return true is query is executed
+   * @throws SQLException from dataBaseConfig
+   * @throws ClassNotFoundException from dataBaseConfig
    */
-  public boolean saveTicket(Ticket ticket) throws SQLException {
+  public boolean saveTicket(Ticket ticket) throws SQLException, ClassNotFoundException {
     Connection con = null;
     PreparedStatement ps = null;
     try {
@@ -45,21 +46,22 @@ public class TicketDao {
       ps.setTimestamp(
           5, (ticket.getOutTime() == null) ? null : (new Timestamp(ticket.getOutTime().getTime())));
       return ps.execute();
-    } catch (Exception ex) {
-      logger.error("Error fetching next available slot", ex);
+    } catch (SQLException | ClassNotFoundException ex) {
+      logger.error("Error fetching next available slot");
+      throw ex;
     } finally {
       dataBaseConfig.closeConnection(con);
       dataBaseConfig.closePreparedStatement(ps);
     }
-    return false;
   }
 
   /**
    * Method to retrieve ticket from DB.
    *
-   * @param vehicleRegNumber
+   * @param vehicleRegNumber the vehicleRegNumber to get data from db.
    * @return ticket
-   * @throws SQLException
+   * @throws SQLException from dataBaseConfig
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public Ticket getTicket(String vehicleRegNumber) throws SQLException, ClassNotFoundException {
     Connection con = null;
@@ -83,7 +85,7 @@ public class TicketDao {
         ticket.setInTime(rs.getTimestamp(4));
         ticket.setOutTime(rs.getTimestamp(5));
       }
-    } catch ( SQLException e) {
+    } catch (SQLException e) {
       logger.error("Error fetching next available slot");
       throw e;
     } finally {
@@ -97,10 +99,10 @@ public class TicketDao {
   /**
    * Method to update ticket outTime and price.
    *
-   * @param ticket
-   * @return boolean
-   * @throws SQLException
-   * @throws ClassNotFoundException
+   * @param ticket the ticket to update in db
+   * @return true if query is executed
+   * @throws SQLException from dataBaseConfig
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public boolean updateTicket(Ticket ticket) throws SQLException, ClassNotFoundException {
     Connection con = null;
@@ -130,10 +132,10 @@ public class TicketDao {
   /**
    * Method to check if the vehicleRegNumber already exist in DB.
    *
-   * @param ticket
-   * @return boolean
-   * @throws SQLException
-   * @throws ClassNotFoundException
+   * @param ticket ticket which contain the vehicleRegNumber to check its presence in db
+   * @return true if vehicleRegNumber is present more than 1 time in DB
+   * @throws SQLException from dataBaseConfig
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public boolean checkRecurrentUser(Ticket ticket) throws SQLException, ClassNotFoundException {
 

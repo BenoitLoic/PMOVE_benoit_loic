@@ -20,9 +20,9 @@ public class ParkingSpotDao {
   /**
    * Method to Get the next available parking slot in DB for this parkingType.
    *
-   * @param parkingType
+   * @param parkingType the parking type checked for availability
    * @return integer result (number of the 1st available slot in DB, -1 == error)
-   * @throws SQLException
+   * @throws SQLException from dataBaseConfig
    */
   public int getNextAvailableSlot(ParkingType parkingType) throws SQLException {
     Connection con = null;
@@ -51,10 +51,10 @@ public class ParkingSpotDao {
   /**
    * Method to update the availability for that parking slot.
    *
-   * @param parkingSpot
-   * @return boolean
-   * @throws SQLException
-   * @throws ClassNotFoundException
+   * @param parkingSpot the parking spot to update availability
+   * @return true if 1 parking spot have been updated
+   * @throws SQLException from dataBaseConfig
+   * @throws ClassNotFoundException from dataBaseConfig
    */
   public boolean updateParking(ParkingSpot parkingSpot)
       throws SQLException, ClassNotFoundException {

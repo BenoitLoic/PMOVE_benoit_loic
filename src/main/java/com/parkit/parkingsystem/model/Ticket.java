@@ -2,6 +2,10 @@ package com.parkit.parkingsystem.model;
 
 import java.util.Date;
 
+/**
+ * Model for ticket.
+ * contain getter and setter for id, parkingSpot, vehicleRegNumber, price, inTime and outTime
+ */
 public class Ticket {
   private int id;
   private ParkingSpot parkingSpot;

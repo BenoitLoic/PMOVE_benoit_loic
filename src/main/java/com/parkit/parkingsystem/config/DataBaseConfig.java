@@ -21,8 +21,8 @@ public class DataBaseConfig {
    * Method to create Connection to DB.
    *
    * @return DriverManager.getConnection (DB id)
-   * @throws SQLException
-   * @throws ClassNotFoundException
+   * @throws SQLException if an error occur wit DB
+   * @throws ClassNotFoundException if jdbc.Driver class can't be located
    */
   @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
   public Connection getConnection() throws SQLException, ClassNotFoundException {
@@ -35,8 +35,8 @@ public class DataBaseConfig {
   /**
    * Method to close connection to DB.
    *
-   * @param con Connection
-   * @throws SQLException
+   * @param con Connection to close
+   * @throws SQLException if there is an error with db
    */
   public void closeConnection(Connection con) throws SQLException {
     if (con != null) {
@@ -53,8 +53,8 @@ public class DataBaseConfig {
   /**
    * Method to close prepared statement.
    *
-   * @param ps PreparedStatement
-   * @throws SQLException
+   * @param ps PreparedStatement to close
+   * @throws SQLException if there is an error with db
    */
   public void closePreparedStatement(PreparedStatement ps) throws SQLException {
     if (ps != null) {
@@ -71,8 +71,8 @@ public class DataBaseConfig {
   /**
    * Method to close result set.
    *
-   * @param rs
-   * @throws SQLException
+   * @param rs result set to close
+   * @throws SQLException if there is an error with db
    */
   public void closeResultSet(ResultSet rs) throws SQLException {
     if (rs != null) {

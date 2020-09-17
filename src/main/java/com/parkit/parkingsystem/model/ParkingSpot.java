@@ -7,6 +7,13 @@ public class ParkingSpot {
   private final ParkingType parkingType;
   private boolean isAvailable;
 
+  /**
+   * Constructor for ParkingSpot class.
+   *
+   * @param number the number of the parking spot.
+   * @param parkingType the type of the parking, enum in ParkingType constants
+   * @param isAvailable availability of the parking spot
+   */
   public ParkingSpot(int number, ParkingType parkingType, boolean isAvailable) {
     this.number = number;
     this.parkingType = parkingType;
