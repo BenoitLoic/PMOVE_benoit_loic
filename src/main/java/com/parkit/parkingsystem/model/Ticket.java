@@ -3,8 +3,8 @@ package com.parkit.parkingsystem.model;
 import java.util.Date;
 
 /**
- * Model for ticket.
- * contain getter and setter for id, parkingSpot, vehicleRegNumber, price, inTime and outTime
+ * Model for ticket. contain getter and setter for id, parkingSpot, vehicleRegNumber, price, inTime
+ * and outTime
  */
 public class Ticket {
   private int id;
@@ -51,18 +51,32 @@ public class Ticket {
   }
 
   public Date getInTime() {
-    return inTime;
+    if (inTime == null) {
+      return null;
+    } else {
+      return new Date(inTime.getTime());
+    }
   }
 
   public void setInTime(Date inTime) {
-    this.inTime = inTime;
+    if (inTime != null) {
+      this.inTime = new Date(inTime.getTime());
+    }
   }
 
   public Date getOutTime() {
-    return outTime;
+    if (outTime == null) {
+      return null;
+    } else {
+      return new Date(outTime.getTime());
+    }
   }
 
   public void setOutTime(Date outTime) {
-    this.outTime = outTime;
+    if (outTime == null) {
+      this.outTime = null;
+    } else {
+      this.outTime = new Date(outTime.getTime());
+    }
   }
 }

@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 @SuppressFBWarnings("UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD")
 public class ParkingService {
 
-  private static final Logger logger = LogManager.getLogger("ParkingService");
+  private static final Logger LOGGER = LogManager.getLogger("ParkingService");
 
   private static final FareCalculatorService fareCalculatorService = new FareCalculatorService();
 
@@ -71,7 +71,7 @@ public class ParkingService {
             "Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
       }
     } catch (SQLException | ClassNotFoundException e) {
-      logger.error("Unable to process incoming vehicle");
+      LOGGER.error("Unable to process incoming vehicle");
       throw e;
     }
   }
@@ -98,9 +98,9 @@ public class ParkingService {
         throw new Exception("Error fetching parking number from DB. Parking slots might be full");
       }
     } catch (IllegalArgumentException ie) {
-      logger.error("Error parsing user input for type of vehicle", ie);
+      LOGGER.error("Error parsing user input for type of vehicle", ie);
     } catch (Exception e) {
-      logger.error("Error fetching next available parking slot", e);
+      LOGGER.error("Error fetching next available parking slot", e);
     }
     return parkingSpot;
   }
@@ -164,7 +164,7 @@ public class ParkingService {
         System.out.println("Unable to update ticket information. Error occurred");
       }
     } catch (NullPointerException e) {
-      logger.error("Unable to process exiting vehicle");
+      LOGGER.error("Unable to process exiting vehicle");
       throw e;
     }
   }
