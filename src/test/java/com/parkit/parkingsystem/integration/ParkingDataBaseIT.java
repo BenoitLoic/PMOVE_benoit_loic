@@ -1,6 +1,7 @@
 package com.parkit.parkingsystem.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.parkit.parkingsystem.constants.Fare;
@@ -57,16 +58,20 @@ public class ParkingDataBaseIT {
     parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
   }
 
+  /**
+   * Test vehicle entry. test if ticket is saved in data base and parking spot set to "not
+   * available"
+   *
+   * @throws SQLException from DataBaseConfig and DAO
+   * @throws ClassNotFoundException from DataBaseConfig
+   */
   @Test
   public void testParkingACar() throws SQLException, ClassNotFoundException {
     String available = "";
     String regNumber = "";
-    // GIVEN
 
-    ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-    // WHEN
     parkingService.processIncomingVehicle();
-    // THEN
+
     String preparedString =
         "SELECT t.*, p.AVAILABLE, p.TYPE "
             + "FROM ticket t, parking p "
@@ -85,6 +90,13 @@ public class ParkingDataBaseIT {
     }
   }
 
+  /**
+   * Integration test on vehicle exit. test if data base is correctly populated with the right out
+   * time, the price and parking space freed.
+   *
+   * @throws SQLException from DataBaseConfig and DAO
+   * @throws ClassNotFoundException from DataBaseConfig
+   */
   @Test
   public void testParkingLotExit() throws SQLException, ClassNotFoundException {
     String availability = "";
@@ -141,6 +153,48 @@ public class ParkingDataBaseIT {
       //          check if discount is applied to recurrent user
       assertEquals(
           Fare.CAR_RATE_PER_HOUR - Fare.CAR_RATE_PER_HOUR * 5 / 100, recurrentPrice, 0.001);
+    }
+  }
+
+  /**
+   * Test if the right exception is thrown when : *user enter an unknown vehicle type. *the parking
+   * is full and a new vehicle try to enter. *user enter the wrong vehicleRegNumber. And test if the
+   * right parking spot is freed when a vehicle exit.
+   *
+   * @throws SQLException from DataBaseConfig and DAO
+   * @throws ClassNotFoundException from DataBaseConfig
+   */
+  @Test
+  public void testMultipleEntryAndExit() throws SQLException, ClassNotFoundException {
+    when(inputReaderUtil.readSelection()).thenReturn(1, 1, 1, 2, 2, 3, 1);
+
+    when(inputReaderUtil.readVehicleRegistrationNumber())
+        .thenReturn("CAR1", "CAR2", "CAR3", "BIKE1", "BIKE2", "CAR4");
+    for (int i = 0; i < 5; i++) {
+      // fill all parking spot
+      parkingService.processIncomingVehicle();
+    }
+
+    assertThrows(IllegalArgumentException.class, () -> parkingService.processIncomingVehicle());
+    assertThrows(SQLException.class, () -> parkingService.processIncomingVehicle());
+    when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR3", "FAIL");
+    String subOneHourString =
+        "UPDATE ticket " + "SET IN_TIME = SUBTIME (IN_TIME, '00:30:00') " + "WHERE ID = ?;";
+    try (Connection con = dataBaseTestConfig.getConnection()) {
+      try (PreparedStatement ps = con.prepareStatement(subOneHourString)) {
+        ps.setInt(1, 3);
+        ps.execute();
+      }
+      parkingService.processExitingVehicle();
+      try (PreparedStatement ps =
+              con.prepareStatement("SELECT AVAILABLE FROM parking WHERE PARKING_NUMBER = 3;");
+          ResultSet rs = ps.executeQuery() ) {
+        if (rs.next()) {
+          int available = rs.getInt("AVAILABLE");
+          assertEquals(1, available);
+        }
+        assertThrows(NullPointerException.class, () -> parkingService.processExitingVehicle());
+      }
     }
   }
 }

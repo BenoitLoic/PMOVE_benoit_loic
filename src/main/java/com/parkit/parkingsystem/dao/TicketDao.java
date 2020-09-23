@@ -43,9 +43,7 @@ public class TicketDao {
       ps.setTimestamp(
           5, (ticket.getOutTime() == null) ? null : (new Timestamp(ticket.getOutTime().getTime())));
       return ps.execute();
-    } catch (SQLException | ClassNotFoundException ex) {
-      logger.error("Error fetching next available slot");
-      throw ex;
+
     }
   }
 
@@ -76,9 +74,6 @@ public class TicketDao {
           ticket.setOutTime(rs.getTimestamp(5));
         }
       }
-    } catch (SQLException | ClassNotFoundException e) {
-      logger.error("Error fetching next available slot");
-      throw e;
     }
     return ticket;
   }
@@ -105,10 +100,7 @@ public class TicketDao {
       ps.setString(3, ticket.getVehicleRegNumber());
       ps.execute();
       return true;
-    } catch (SQLException | ClassNotFoundException ex) {
-      logger.error("Error saving ticket info");
     }
-    return false;
   }
 
   /**
@@ -135,9 +127,6 @@ public class TicketDao {
           }
         }
       }
-    } catch (SQLException | ClassNotFoundException ex) {
-      logger.error("Error checking recurrent user");
-      throw ex;
     }
     return result;
   }

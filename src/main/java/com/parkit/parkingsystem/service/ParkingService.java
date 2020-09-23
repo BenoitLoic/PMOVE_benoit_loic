@@ -45,34 +45,29 @@ public class ParkingService {
    * @throws ClassNotFoundException from dataBaseConfig
    */
   public void processIncomingVehicle() throws SQLException, ClassNotFoundException {
-    try {
-      ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
-      if (parkingSpot != null && parkingSpot.getId() > 0) {
-        parkingSpot.setAvailable(false);
-        // allot this parking space and mark it's availability as false
-        parkingSpotDao.updateParking(parkingSpot);
-        String vehicleRegNumber = getVehicleRegNumber();
-        Date inTime = new Date();
-        Ticket ticket = new Ticket();
-        // ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
-        ticket.setParkingSpot(parkingSpot);
-        ticket.setVehicleRegNumber(vehicleRegNumber);
-        ticket.setPrice(0);
-        ticket.setInTime(inTime);
-        ticket.setOutTime(null);
-        ticketDao.saveTicket(ticket);
-        if (ticketDao.checkRecurrentUser(ticket)) {
-          System.out.println(
-              "Welcome back! As a recurring user of our parking lot, you'll benefit from a 5% discount.");
-        }
-        System.out.println("Generated Ticket and saved in DB");
-        System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
+    ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
+    if (parkingSpot.getId() > 0) {
+      parkingSpot.setAvailable(false);
+      // allot this parking space and mark it's availability as false
+      parkingSpotDao.updateParking(parkingSpot);
+      String vehicleRegNumber = getVehicleRegNumber();
+      Date inTime = new Date();
+      Ticket ticket = new Ticket();
+      // ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
+      ticket.setParkingSpot(parkingSpot);
+      ticket.setVehicleRegNumber(vehicleRegNumber);
+      ticket.setPrice(0);
+      ticket.setInTime(inTime);
+      ticket.setOutTime(null);
+      ticketDao.saveTicket(ticket);
+      if (ticketDao.checkRecurrentUser(ticket)) {
         System.out.println(
-            "Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
+            "Welcome back! As a recurring user of our parking lot, you'll benefit from a 5% discount.");
       }
-    } catch (SQLException | ClassNotFoundException e) {
-      LOGGER.error("Unable to process incoming vehicle");
-      throw e;
+      System.out.println("Generated Ticket and saved in DB");
+      System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
+      System.out.println(
+          "Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
     }
   }
 
@@ -86,22 +81,20 @@ public class ParkingService {
     return inputReaderUtil.readVehicleRegistrationNumber();
   }
 
-  private ParkingSpot getNextParkingNumberIfAvailable() {
+  private ParkingSpot getNextParkingNumberIfAvailable()
+      throws SQLException, ClassNotFoundException {
     int parkingNumber;
-    ParkingSpot parkingSpot = null;
-    try {
+    ParkingSpot parkingSpot;
+
       ParkingType parkingType = getVehicleType();
       parkingNumber = parkingSpotDao.getNextAvailableSlot(parkingType);
       if (parkingNumber > 0) {
         parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
       } else {
-        throw new Exception("Error fetching parking number from DB. Parking slots might be full");
+        throw new SQLException("Error fetching parking number from DB. Parking slots might be full");
       }
-    } catch (IllegalArgumentException ie) {
-      LOGGER.error("Error parsing user input for type of vehicle", ie);
-    } catch (Exception e) {
-      LOGGER.error("Error fetching next available parking slot", e);
-    }
+
+
     return parkingSpot;
   }
 
@@ -110,7 +103,7 @@ public class ParkingService {
    *
    * @return Vehicle type (CAR/BIKE)
    */
-  private ParkingType getVehicleType() {
+  private ParkingType getVehicleType() throws IllegalArgumentException {
     System.out.println("Please select vehicle type from menu");
     System.out.println("1 CAR");
     System.out.println("2 BIKE");
@@ -134,38 +127,33 @@ public class ParkingService {
    * ticket and update DB.
    *
    * @throws SQLException from dataBaseConfig and DAO
-   * @throws NullPointerException from fareCalculatorService
+   * @throws NullPointerException from fareCalculatorService and if ticket is null
    * @throws ClassNotFoundException from dataBaseConfig
    */
   public void processExitingVehicle()
       throws SQLException, NullPointerException, ClassNotFoundException {
-    try {
-      String vehicleRegNumber = getVehicleRegNumber();
-      Ticket ticket = ticketDao.getTicket(vehicleRegNumber);
-      Date outTime = new Date();
-      ticket.setOutTime(outTime);
-      fareCalculatorService.calculateFare(ticket);
-      if (ticketDao.updateTicket(ticket)) {
-        ParkingSpot parkingSpot = ticket.getParkingSpot();
-        parkingSpot.setAvailable(true);
-        parkingSpotDao.updateParking(parkingSpot);
-        boolean recurrentUser = ticketDao.checkRecurrentUser(ticket);
-        if (recurrentUser) {
-          System.out.println("Please pay the parking fare :" + ticket.getPriceRecurrentUser());
-        } else {
-          System.out.println("Please pay the parking fare:" + ticket.getPrice());
-        }
-        System.out.println(
-            "Recorded out-time for vehicle number:"
-                + ticket.getVehicleRegNumber()
-                + " is:"
-                + outTime);
+    String vehicleRegNumber = getVehicleRegNumber();
+    Ticket ticket = ticketDao.getTicket(vehicleRegNumber);
+    Date outTime = new Date();
+    ticket.setOutTime(outTime);
+    fareCalculatorService.calculateFare(ticket);
+    if (ticketDao.updateTicket(ticket)) {
+      ParkingSpot parkingSpot = ticket.getParkingSpot();
+      parkingSpot.setAvailable(true);
+      parkingSpotDao.updateParking(parkingSpot);
+      boolean recurrentUser = ticketDao.checkRecurrentUser(ticket);
+      if (recurrentUser) {
+        System.out.println("Please pay the parking fare :" + ticket.getPriceRecurrentUser());
       } else {
-        System.out.println("Unable to update ticket information. Error occurred");
+        System.out.println("Please pay the parking fare:" + ticket.getPrice());
       }
-    } catch (NullPointerException e) {
-      LOGGER.error("Unable to process exiting vehicle");
-      throw e;
+      System.out.println(
+          "Recorded out-time for vehicle number:"
+              + ticket.getVehicleRegNumber()
+              + " is:"
+              + outTime);
+    } else {
+      System.out.println("Unable to update ticket information. Error occurred");
     }
   }
 }

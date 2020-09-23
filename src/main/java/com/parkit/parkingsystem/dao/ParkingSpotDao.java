@@ -36,9 +36,6 @@ public class ParkingSpotDao {
           result = rs.getInt(1);
         }
       }
-    } catch (SQLException | ClassNotFoundException ex) {
-      logger.error("Error fetching next available slot");
-      throw ex;
     }
     return result;
   }
@@ -60,9 +57,7 @@ public class ParkingSpotDao {
       ps.setInt(2, parkingSpot.getId());
       int updateRowCount = ps.executeUpdate();
       return (updateRowCount == 1);
-    } catch (SQLException | ClassNotFoundException ex) {
-      logger.error("Error updating parking info");
-      throw ex;
+
     }
   }
 }
